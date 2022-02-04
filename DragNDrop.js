@@ -1,5 +1,5 @@
 class DragNDrop {
-  constructor(item_prefix, drag_container, callbackFunc) {
+  constructor(item_prefix, drag_container, callbackFunc, dragBtn) {
     this.item_prefix = item_prefix;
     this.drag_container = document.querySelector(drag_container);
     this._dragging;
@@ -12,22 +12,29 @@ class DragNDrop {
     this.initialY = 0;
     this.xOffset = 0;
     this.yOffset = 0;
+
+    this.dragBtn = dragBtn; // string selector dragBtn must be child of drag container
     this.initialize();
   }
 
   initialize() {
-    document.addEventListener('DOMNodeInserted', this.handleDOMNodeInserted);
+    // attach DOMNodeInsert event to Document
+    document.addEventListener('DOMNodeInserted', this.handleDOMNodeInserted.bind(this));
+    // attach events to all existing nodes
     this.nodes.forEach((node) => {
       this.attachEvents(node);
     });
   }
 
   handleDOMNodeInserted(event) {
-    const { target, target: { id }}
+    const {
+      target,
+      target: { id },
+    } = event;
+
     if (id.includes(this.item_prefix)) {
       if (!target.dataset.set) {
-        console.log('attach');
-        this.attachEvents(e.target);
+        this.attachEvents(event.target);
       }
     }
   }
@@ -45,14 +52,28 @@ class DragNDrop {
     node.addEventListener('dragover', this.dragover.bind(this));
     node.addEventListener('drop', this.drop.bind(this));
     node.addEventListener('dragend', this.dragend.bind(this));
+    node.addEventListener('mousedown', this.mouseDown.bind(this));
   }
 
-  dragstart(e) {
-    console.log(e.target);
-    if (!e.target.classList.contains('dragNdrop')) {
-      e.preventDefault();
+  mouseDown(event) {
+    const { target } = event;
+    if (this.dragBtn) {
+      const dragBtnElement = target.parentElement.querySelector(this.dragBtn);
+      if (dragBtnElement != target) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
     }
-    e.stopPropagation();
+  }
+
+  dragstart(event) {
+    const { target } = event;
+    // dragBtn set
+
+    if (!target.classList.contains('dragNdrop')) {
+      event.preventDefault();
+    }
+    event.stopPropagation();
   }
   dragging(e) {
     e.preventDefault();
@@ -133,5 +154,3 @@ class DragNDrop {
 }
 
 export default DragNDrop;
-
-

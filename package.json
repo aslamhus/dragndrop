@@ -1,0 +1,24 @@
+{
+  "name": "dragndrop",
+  "version": "1.0.0",
+  "description": "a simple javascript drag and drop class",
+  "main": "DragNDrop.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aslam Husain <aslam.percy.husain@gmail.com> (https://github.com/aslamhus)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aslamhus/dragndrop.git"
+  },
+  "keywords": [
+    "drag",
+    "drop",
+    "draganddrop"
+  ],
+  "bugs": {
+    "url": "https://github.com/aslamhus/dragndrop/issues"
+  },
+  "homepage": "https://github.com/aslamhus/dragndrop#readme"
+}

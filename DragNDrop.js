@@ -130,10 +130,10 @@ class DragNDrop {
       this.nodes = document.querySelectorAll(`[id^=${this.item_prefix}]`);
     }
     this.nodes.forEach((el) => {
-      el.style.left = null;
+      el.style.transform = null;
     });
     if (draggedOverPos.x < e.clientX) {
-      target.style.left = '35px';
+      target.style.transform = 'translateX(10px)';
     }
 
     return;
@@ -147,7 +147,7 @@ class DragNDrop {
     this.nodes.forEach((element) => {
       element.classList.remove('drag-over');
       element.classList.remove('dragging');
-      element.style.left = null;
+      element.style.transform = null;
       element.style.cursor = 'grab';
     });
   }

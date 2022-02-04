@@ -34,7 +34,7 @@ class DragNDrop {
       target,
       target: { id },
     } = event;
-    if (id.includes(this.item_prefix)) {
+    if (id?.includes(this.item_prefix)) {
       if (!target.dataset.set) {
         this.attachEvents(event.target);
       }

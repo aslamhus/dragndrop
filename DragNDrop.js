@@ -5,23 +5,6 @@ class DragNDrop {
     this._dragging;
     this._dragged_over;
     this.nodes = document.querySelectorAll(`[id^=${item_prefix}]`);
-    document.addEventListener('DOMNodeInserted', (e) => {
-      if (e.target) {
-        if (e.target.id) {
-          if (e.target.id.includes(this.item_prefix)) {
-            if (!e.target.dataset.set) {
-              console.log('attach');
-              this.attachEvents(e.target);
-            }
-          }
-        }
-      } else {
-        return;
-      }
-    });
-    this.nodes.forEach((node) => {
-      this.attachEvents(node);
-    });
     this.callbackFunc = callbackFunc;
     this.currentX;
     this.currentY;
@@ -29,6 +12,24 @@ class DragNDrop {
     this.initialY = 0;
     this.xOffset = 0;
     this.yOffset = 0;
+    this.initialize();
+  }
+
+  initialize() {
+    document.addEventListener('DOMNodeInserted', this.handleDOMNodeInserted);
+    this.nodes.forEach((node) => {
+      this.attachEvents(node);
+    });
+  }
+
+  handleDOMNodeInserted(event) {
+    const { target, target: { id }}
+    if (id.includes(this.item_prefix)) {
+      if (!target.dataset.set) {
+        console.log('attach');
+        this.attachEvents(e.target);
+      }
+    }
   }
 
   attachEvents(node) {
@@ -133,27 +134,4 @@ class DragNDrop {
 
 export default DragNDrop;
 
-// touchStart(e){
-//     this.initialX = e.touches[0].clientX - this.xOffset;
-//     this.initialY = e.touches[0].clientY - this.yOffset;
-//     let testimonial = e.target.closest("div.testimonial");
-//     testimonial.style.opacity = 0.5;
-// }
 
-// touchMove(e){
-//     this.currentX = e.touches[0].clientX - this.initialX;
-//     this.currentY = e.touches[0].clientY - this.initialY;
-//     let testimonial = e.target.closest("div.testimonial");
-//     testimonial.style.transform = "translate3d(" + this.currentX + "px, " + this.currentY + "px, 0)";
-//     console.log("currentX", this.currentX)
-
-// }
-
-// touchEnd(e){
-
-//     let testimonial = e.target.closest("div.testimonial");
-//     console.log(testimonial.style.transform)
-//     testimonial.style.transform = "translate3d(" + 0 + "px, " + 0 + "px, 0)";
-//     testimonial.style.opacity = 1;
-
-// }

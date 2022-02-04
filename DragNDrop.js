@@ -2,6 +2,7 @@ class DragNDrop {
   constructor(item_prefix, drag_container, callbackFunc, dragBtn) {
     this.item_prefix = item_prefix;
     this.drag_container = document.querySelector(drag_container);
+    console.log(this.drag_container);
     this._dragging;
     this._dragged_over;
     this.nodes = document.querySelectorAll(`[id^=${item_prefix}]`);
@@ -21,8 +22,10 @@ class DragNDrop {
     // attach DOMNodeInsert event to Document
     document.addEventListener('DOMNodeInserted', this.handleDOMNodeInserted.bind(this));
     // attach events to all existing nodes
+
     this.nodes.forEach((node) => {
-      this.attachEvents(node);
+      // make sure drag container is not included in nodes
+      if (node != this.drag_container) this.attachEvents(node);
     });
   }
 
@@ -31,7 +34,6 @@ class DragNDrop {
       target,
       target: { id },
     } = event;
-
     if (id.includes(this.item_prefix)) {
       if (!target.dataset.set) {
         this.attachEvents(event.target);
@@ -84,17 +86,22 @@ class DragNDrop {
   dragover(e) {
     e.preventDefault();
   }
+
   drop(e) {
     if (this._dragged_over && this._dragged_over != this._dragging) {
-      let el1 = document.querySelector(`#${this.item_prefix}${this._dragging}`);
-      let el2 = document.querySelector(`#${this.item_prefix}${this._dragged_over}`);
-      el1.remove();
-      this.drag_container.insertBefore(el1, el2);
+      console.log('test');
+      const el1 = document.querySelector(`#${this.item_prefix}${this._dragging}`);
+      const el2 = document.querySelector(`#${this.item_prefix}${this._dragged_over}`);
+      if (el1 && el2) {
+        const insertBefore = this.drag_container.insertBefore(el1, el2);
+      } else {
+        return;
+      }
+
       this.nodes = document.querySelectorAll(`[id^=${this.item_prefix}]`);
       let enumRank = [];
       this.nodes.forEach((node) => enumRank.push(node.id));
       this.callbackFunc(enumRank);
-      return;
     } else {
       this.removeAllDragClasses();
     }

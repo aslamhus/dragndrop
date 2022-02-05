@@ -55,21 +55,43 @@ class DragNDrop {
     node.addEventListener('drag', this.dragging.bind(this));
     node.addEventListener('dragstart', this.dragstart.bind(this));
     node.addEventListener('dragenter', this.dragenter.bind(this));
+    node.addEventListener('dragleave', this.dragleave.bind(this));
     node.addEventListener('dragexit', this.dragexit.bind(this));
     node.addEventListener('dragover', this.dragover.bind(this));
     node.addEventListener('drop', this.drop.bind(this));
     node.addEventListener('dragend', this.dragend.bind(this));
-    node.addEventListener('mousedown', this.mouseDown.bind(this));
-    node.addEventListener('mouseover', this.mouseover.bind(this));
+    node.addEventListener('mousedown', this.mousedown.bind(this));
+    node.addEventListener('mouseenter', this.mouseenter.bind(this));
     node.addEventListener('mouseout', this.mouseout.bind(this));
   }
 
-  mouseDown(event) {
+  position(e, target) {
+    console.log(target);
+    if (!target.classList.contains('dragNdrop')) {
+      return;
+    }
+    let draggedOverPos = target.getBoundingClientRect();
+    var draggingPos = e.clientY;
+
+    if (this.nodes.length <= 0) {
+      this.nodes = document.querySelectorAll(`[id^=${this.item_prefix}]`);
+    }
+    this.nodes.forEach((el) => {
+      el.style.transform = null;
+    });
+    if (draggedOverPos.x < e.clientX) {
+      target.style.transform = 'translateX(10px)';
+    }
+
+    return;
+  }
+
+  mousedown(event) {
     const { target } = event;
     // if a dragBtn is set, only allow dragging when clicking on the dragBtn element
     if (this.dragBtn) {
       const dragBtnElement = target.parentElement.querySelector(this.dragBtn);
-      if (dragBtnElement != target) {
+      if (!target.closest(this.dragBtn)) {
         // prevent dragging
         event.preventDefault();
         event.stopPropagation();
@@ -83,7 +105,7 @@ class DragNDrop {
     }
   }
 
-  mouseover(event) {
+  mouseenter(event) {
     // if a dragBtn is set, only display grab cursor when hovering over it, and not its parent node
     const { target } = event;
     if (this.dragBtn) {
@@ -102,14 +124,6 @@ class DragNDrop {
 
   dragstart(event) {
     const { target } = event;
-    // dragBtn set
-
-    // if (this.dragBtn) {
-    //   console.log(target.querySelector(this.dragBtn));
-    //   target.querySelector(this.dragBtn).style.cursor = 'grab';
-    // } else {
-    //   target.style.cursor = 'grab';
-    // }
     if (!target.classList.contains('dragNdrop')) {
       event.preventDefault();
     }
@@ -123,14 +137,59 @@ class DragNDrop {
     target.classList.add('dragging');
     target.style.opacity = 0;
     document.body.style.setProperty('cursor', 'grabbing', 'important');
-    // if (this.dragBtn) {
-    //   target.querySelector(this.dragBtn).style.cursor = 'grab';
-    // } else {
-    //   target.style.cursor = 'grab';
-    // }
   }
+
   dragover(e) {
     e.preventDefault();
+  }
+
+  dragenter(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const {
+      target,
+      target: { id },
+    } = event;
+    if (!target) {
+      return;
+    }
+    // looks for closest parent element with dragNdrop class
+    const dragOverEl = this.findDragNDropElement(target);
+    if (!dragOverEl) return;
+    // get dragged over id (without prefix)
+    const dragItemId = dragOverEl.id.replace(this.item_prefix, '');
+    // give dragged over element drag-over class
+    dragOverEl.classList.add('drag-over');
+    // and remove drag over class on previous dragged over item
+    if (this._dragged_over != dragItemId && dragItemId != '') {
+      const dragLeaveEl = this.drag_container.querySelector(
+        `#${this.item_prefix}${this._dragged_over}`
+      );
+      // remove drag-over class and transform
+      if (dragLeaveEl) {
+        dragLeaveEl.classList.remove('drag-over');
+        dragLeaveEl.style.removeProperty('transform');
+      }
+    }
+
+    this._dragged_over = dragItemId;
+    this.position(event, dragOverEl);
+  }
+
+  findDragNDropElement(target) {
+    let dragNdropEl;
+    if (!target.classList.contains('dragNdrop')) {
+      dragNdropEl = target.closest('.dragNdrop');
+    }
+    return dragNdropEl;
+  }
+
+  dragexit(event) {
+    event.preventDefault();
+  }
+
+  dragleave(event) {
+    event.preventDefault();
   }
 
   drop(e) {
@@ -153,45 +212,6 @@ class DragNDrop {
     }
   }
 
-  dragenter(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    let target = e.target;
-    if (!target) {
-      return;
-    }
-    if (!target.classList.contains('dragNdrop')) {
-      target = target.closest('.dragNdrop');
-    }
-
-    this._dragged_over = target.id.replace(this.item_prefix, '');
-    this.position(e, target);
-  }
-
-  dragexit(e) {
-    e.preventDefault();
-  }
-
-  position(e, target) {
-    if (!target.classList.contains('dragNdrop')) {
-      return;
-    }
-    let draggedOverPos = target.getBoundingClientRect();
-    var draggingPos = e.clientY;
-
-    if (this.nodes.length <= 0) {
-      this.nodes = document.querySelectorAll(`[id^=${this.item_prefix}]`);
-    }
-    this.nodes.forEach((el) => {
-      el.style.transform = null;
-    });
-    if (draggedOverPos.x < e.clientX) {
-      target.style.transform = 'translateX(10px)';
-    }
-
-    return;
-  }
-
   dragend(e) {
     this.removeAllDragClasses();
   }
@@ -202,11 +222,6 @@ class DragNDrop {
       element.classList.remove('dragging');
       element.style.transform = null;
       element.style.opacity = 1;
-      // if (this.dragBtn) {
-      //   element.querySelector(this.dragBtn).style.cursor = 'grab';
-      // } else {
-      //   element.style.cursor = 'grab';
-      // }
     });
 
     document.body.style.setProperty('cursor', 'auto', 'important');

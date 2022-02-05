@@ -249,7 +249,9 @@ class DragNDrop {
   drop(e) {
     e.preventDefault();
     document.body.style.cursor = 'auto';
-    const position = this.position(e, e.target);
+    const dropEl = this.findDragNDropElement(e.target);
+    const position = this.position(e, dropEl);
+
     if (this._dragged_over && this._dragged_over != this._dragging) {
       const el1 = document.querySelector(`#${this.item_prefix}${this._dragging}`);
       const el2 = document.querySelector(`#${this.item_prefix}${this._dragged_over}`);

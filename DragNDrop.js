@@ -195,22 +195,24 @@ class DragNDrop {
     if (!dragOverEl) return;
     // get dragged over id (without prefix)
     const dragItemId = dragOverEl.id.replace(this.item_prefix, '');
-    // set the dragged over id
-    this._dragged_over = dragItemId;
-    // give dragged over element drag-over class (unless we are dragging over the grabbed item)
-    if (this._dragged_over != this._dragging) {
-      dragOverEl.classList.add('drag-over');
-    }
-    // and remove drag over class on previous dragged over item
-    if (this._dragged_over != dragItemId && dragItemId != '') {
+
+    // remove drag over class on previous dragged over item
+    if (this._dragged_over != this._dragging && dragItemId != '') {
       const dragLeaveEl = this.drag_container.querySelector(
         `#${this.item_prefix}${this._dragged_over}`
       );
       // remove drag-over class and transform
       if (dragLeaveEl) {
+        console.log('remove drag-over', dragLeaveEl);
         dragLeaveEl.classList.remove('drag-over');
         dragLeaveEl.style.removeProperty('transform');
       }
+    }
+    // set the dragged over id
+    this._dragged_over = dragItemId;
+    // give dragged over element drag-over class (unless we are dragging over the grabbed item)
+    if (this._dragged_over != this._dragging) {
+      dragOverEl.classList.add('drag-over');
     }
   }
 

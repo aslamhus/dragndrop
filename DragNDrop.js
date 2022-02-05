@@ -2,7 +2,6 @@ class DragNDrop {
   constructor(item_prefix, drag_container, callbackFunc, dragBtn) {
     this.item_prefix = item_prefix;
     this.drag_container = document.querySelector(drag_container);
-    console.log(this.drag_container);
     this._dragging;
     this._dragged_over;
     this.nodes = document.querySelectorAll(`[id^=${item_prefix}]`);
@@ -13,7 +12,6 @@ class DragNDrop {
     this.initialY = 0;
     this.xOffset = 0;
     this.yOffset = 0;
-
     this.dragBtn = dragBtn; // string selector dragBtn must be child of drag container
     this.initialize();
   }
@@ -45,8 +43,15 @@ class DragNDrop {
     node.style.position = 'relative';
     node.draggable = true;
     node.dataset.set = true; // reference for DOMNodeInserted listener
-    node.style.cursor = 'grab';
+
     node.classList.add('dragNdrop');
+    // allows us to override any native cursor settings
+    // (for instance if a button is the target drag element its native
+    // cursor will be auto)
+    if (this.dragBtn) {
+      node.querySelector(this.dragBtn).style.setProperty('cursor', 'inherit', 'important');
+    } else {
+    }
     node.addEventListener('drag', this.dragging.bind(this));
     node.addEventListener('dragstart', this.dragstart.bind(this));
     node.addEventListener('dragenter', this.dragenter.bind(this));
@@ -55,41 +60,82 @@ class DragNDrop {
     node.addEventListener('drop', this.drop.bind(this));
     node.addEventListener('dragend', this.dragend.bind(this));
     node.addEventListener('mousedown', this.mouseDown.bind(this));
+    node.addEventListener('mouseover', this.mouseover.bind(this));
+    node.addEventListener('mouseout', this.mouseout.bind(this));
   }
 
   mouseDown(event) {
     const { target } = event;
+    // if a dragBtn is set, only allow dragging when clicking on the dragBtn element
     if (this.dragBtn) {
       const dragBtnElement = target.parentElement.querySelector(this.dragBtn);
       if (dragBtnElement != target) {
+        // prevent dragging
         event.preventDefault();
         event.stopPropagation();
+      } else {
+        // continue dragging and set cursor to grab
+        document.body.style.setProperty('cursor', 'grab', 'important');
       }
+    } else {
+      // no dragBtn set, cursor is
+      document.body.style.setProperty('cursor', 'grab', 'important');
     }
+  }
+
+  mouseover(event) {
+    // if a dragBtn is set, only display grab cursor when hovering over it, and not its parent node
+    const { target } = event;
+    if (this.dragBtn) {
+      const dragBtnElement = target.parentElement.querySelector(this.dragBtn);
+      if (dragBtnElement == target) {
+        document.body.style.setProperty('cursor', 'grab', 'important');
+      }
+    } else {
+      document.body.style.setProperty('cursor', 'grab', 'important');
+    }
+  }
+
+  mouseout(event) {
+    document.body.style.setProperty('cursor', 'auto', 'important');
   }
 
   dragstart(event) {
     const { target } = event;
     // dragBtn set
 
+    // if (this.dragBtn) {
+    //   console.log(target.querySelector(this.dragBtn));
+    //   target.querySelector(this.dragBtn).style.cursor = 'grab';
+    // } else {
+    //   target.style.cursor = 'grab';
+    // }
     if (!target.classList.contains('dragNdrop')) {
       event.preventDefault();
     }
     event.stopPropagation();
   }
-  dragging(e) {
-    e.preventDefault();
-    e.target.style.cursor = 'grabbing';
-    this._dragging = e.target.id.replace(this.item_prefix, '');
-    e.target.classList.add('dragging');
+
+  dragging(event) {
+    event.preventDefault();
+    const { target } = event;
+    this._dragging = target.id.replace(this.item_prefix, '');
+    target.classList.add('dragging');
+    target.style.opacity = 0;
+    document.body.style.setProperty('cursor', 'grabbing', 'important');
+    // if (this.dragBtn) {
+    //   target.querySelector(this.dragBtn).style.cursor = 'grab';
+    // } else {
+    //   target.style.cursor = 'grab';
+    // }
   }
   dragover(e) {
     e.preventDefault();
   }
 
   drop(e) {
+    document.body.style.cursor = 'auto';
     if (this._dragged_over && this._dragged_over != this._dragging) {
-      console.log('test');
       const el1 = document.querySelector(`#${this.item_prefix}${this._dragging}`);
       const el2 = document.querySelector(`#${this.item_prefix}${this._dragged_over}`);
       if (el1 && el2) {
@@ -155,8 +201,15 @@ class DragNDrop {
       element.classList.remove('drag-over');
       element.classList.remove('dragging');
       element.style.transform = null;
-      element.style.cursor = 'grab';
+      element.style.opacity = 1;
+      // if (this.dragBtn) {
+      //   element.querySelector(this.dragBtn).style.cursor = 'grab';
+      // } else {
+      //   element.style.cursor = 'grab';
+      // }
     });
+
+    document.body.style.setProperty('cursor', 'auto', 'important');
   }
 }
 

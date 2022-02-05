@@ -43,14 +43,12 @@ class DragNDrop {
     node.style.position = 'relative';
     node.draggable = true;
     node.dataset.set = true; // reference for DOMNodeInserted listener
-
     node.classList.add('dragNdrop');
     // allows us to override any native cursor settings
     // (for instance if a button is the target drag element its native
     // cursor will be auto)
     if (this.dragBtn) {
       node.querySelector(this.dragBtn).style.setProperty('cursor', 'inherit', 'important');
-    } else {
     }
     node.addEventListener('drag', this.dragging.bind(this));
     node.addEventListener('dragstart', this.dragstart.bind(this));
@@ -61,29 +59,33 @@ class DragNDrop {
     node.addEventListener('drop', this.drop.bind(this));
     node.addEventListener('dragend', this.dragend.bind(this));
     node.addEventListener('mousedown', this.mousedown.bind(this));
-    node.addEventListener('mouseenter', this.mouseenter.bind(this));
+    if (this.dragBtn) {
+      const dragBtn = node.querySelector(this.dragBtn);
+      dragBtn.addEventListener('mouseenter', this.mouseenter.bind(this));
+    } else {
+      node.addEventListener('mouseenter', this.mouseenter.bind(this));
+    }
     node.addEventListener('mouseout', this.mouseout.bind(this));
   }
 
-  position(e, target) {
-    console.log(target);
-    if (!target.classList.contains('dragNdrop')) {
-      return;
-    }
-    let draggedOverPos = target.getBoundingClientRect();
-    var draggingPos = e.clientY;
+  position(event, target) {
+    let position;
+    const { width, height, x, y, left, top } = target.getBoundingClientRect();
+    const { clientX, clientY, screenX, screenY } = event;
 
-    if (this.nodes.length <= 0) {
-      this.nodes = document.querySelectorAll(`[id^=${this.item_prefix}]`);
-    }
-    this.nodes.forEach((el) => {
-      el.style.transform = null;
-    });
-    if (draggedOverPos.x < e.clientX) {
+    // get mid position of dragged over element
+    const midPos = left + width / 2;
+    const mousePos = clientX;
+
+    if (mousePos < midPos) {
+      position = 'left';
       target.style.transform = 'translateX(10px)';
+    } else if (mousePos > midPos) {
+      position = 'right';
+      target.style.transform = 'translateX(-10px)';
     }
 
-    return;
+    return position;
   }
 
   mousedown(event) {
@@ -110,7 +112,7 @@ class DragNDrop {
     const { target } = event;
     if (this.dragBtn) {
       const dragBtnElement = target.parentElement.querySelector(this.dragBtn);
-      if (dragBtnElement == target) {
+      if (target == dragBtnElement || target.closest(this.dragBtn)) {
         document.body.style.setProperty('cursor', 'grab', 'important');
       }
     } else {
@@ -141,6 +143,10 @@ class DragNDrop {
 
   dragover(e) {
     e.preventDefault();
+    const dragOverEl = this.findDragNDropElement(e.target);
+    if (!dragOverEl) return;
+
+    this.position(e, dragOverEl);
   }
 
   dragenter(event) {
@@ -173,13 +179,14 @@ class DragNDrop {
     }
 
     this._dragged_over = dragItemId;
-    this.position(event, dragOverEl);
   }
 
   findDragNDropElement(target) {
     let dragNdropEl;
     if (!target.classList.contains('dragNdrop')) {
       dragNdropEl = target.closest('.dragNdrop');
+    } else {
+      dragNdropEl = target;
     }
     return dragNdropEl;
   }
@@ -192,17 +199,36 @@ class DragNDrop {
     event.preventDefault();
   }
 
+  insertAfter(a, b) {
+    const parent = a.parentElement;
+    const nextSibling = b.nextSibling;
+    if (nextSibling) {
+      parent.insertBefore(a, nextSibling);
+    } else {
+      // there is no next sibling, therefore append
+      parent.append(a);
+    }
+    return a;
+  }
+
   drop(e) {
+    e.preventDefault();
     document.body.style.cursor = 'auto';
+    const position = this.position(e, e.target);
     if (this._dragged_over && this._dragged_over != this._dragging) {
       const el1 = document.querySelector(`#${this.item_prefix}${this._dragging}`);
       const el2 = document.querySelector(`#${this.item_prefix}${this._dragged_over}`);
+      // add drop item to dom hierarchy
       if (el1 && el2) {
-        const insertBefore = this.drag_container.insertBefore(el1, el2);
+        if (position == 'left') {
+          const insertBefore = this.drag_container.insertBefore(el1, el2);
+        } else if (position == 'right') {
+          const insertAfter = this.insertAfter(el1, el2);
+        }
       } else {
         return;
       }
-
+      // get new order from dom
       this.nodes = document.querySelectorAll(`[id^=${this.item_prefix}]`);
       let enumRank = [];
       this.nodes.forEach((node) => enumRank.push(node.id));
@@ -213,6 +239,7 @@ class DragNDrop {
   }
 
   dragend(e) {
+    e.preventDefault();
     this.removeAllDragClasses();
   }
 

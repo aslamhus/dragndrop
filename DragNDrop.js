@@ -1,11 +1,12 @@
 class DragNDrop {
-  constructor(item_prefix, drag_container, callbackFunc, dragBtn) {
+  constructor(item_prefix, drag_container, callbackFunc, dragBtn, axis) {
     this.item_prefix = item_prefix;
     this.drag_container = document.querySelector(drag_container);
     this._dragging;
     this._dragged_over;
     this.nodes = document.querySelectorAll(`[id^=${item_prefix}]`);
     this.callbackFunc = callbackFunc;
+    this.axis = axis || 'horizontal';
     this.currentX;
     this.currentY;
     this.initialX = 0;
@@ -69,22 +70,52 @@ class DragNDrop {
   }
 
   position(event, target) {
-    let position;
-    const { width, height, x, y, left, top } = target.getBoundingClientRect();
-    const { clientX, clientY, screenX, screenY } = event;
-
-    // get mid position of dragged over element
-    const midPos = left + width / 2;
-    const mousePos = clientX;
-
-    if (mousePos < midPos) {
-      position = 'left';
-      target.style.transform = 'translateX(10px)';
-    } else if (mousePos > midPos) {
-      position = 'right';
-      target.style.transform = 'translateX(-10px)';
+    const bounds = target.getBoundingClientRect();
+    const position = this.getPosition(bounds, event);
+    switch (position) {
+      case 'left':
+        target.style.transform = 'translateX(10px)';
+        break;
+      case 'right':
+        target.style.transform = 'translateX(-10px)';
+        break;
+      case 'top':
+        target.style.transform = 'translateY(10px)';
+        break;
+      case 'bottom':
+        target.style.transform = 'translateY(-10px)';
+        break;
     }
 
+    return position;
+  }
+
+  getPosition(bounds, event) {
+    let position, midPos, mousePos;
+    const { clientX, clientY, screenX, screenY } = event;
+    const { width, height, x, y, left, top } = bounds;
+    switch (this.axis) {
+      case 'horizontal':
+        midPos = left + width / 2;
+        mousePos = clientX;
+        if (mousePos < midPos) {
+          position = 'left';
+        } else if (mousePos > midPos) {
+          position = 'right';
+        }
+        break;
+      case 'vertical':
+        midPos = top + height / 2;
+        mousePos = clientY;
+        if (mousePos < midPos) {
+          position = 'top';
+        } else if (mousePos > midPos) {
+          position = 'bottom';
+        }
+        break;
+      default:
+        throw new Error('axis not set for dragndrop');
+    }
     return position;
   }
 
@@ -164,8 +195,12 @@ class DragNDrop {
     if (!dragOverEl) return;
     // get dragged over id (without prefix)
     const dragItemId = dragOverEl.id.replace(this.item_prefix, '');
-    // give dragged over element drag-over class
-    dragOverEl.classList.add('drag-over');
+    // set the dragged over id
+    this._dragged_over = dragItemId;
+    // give dragged over element drag-over class (unless we are dragging over the grabbed item)
+    if (this._dragged_over != this._dragging) {
+      dragOverEl.classList.add('drag-over');
+    }
     // and remove drag over class on previous dragged over item
     if (this._dragged_over != dragItemId && dragItemId != '') {
       const dragLeaveEl = this.drag_container.querySelector(
@@ -177,8 +212,6 @@ class DragNDrop {
         dragLeaveEl.style.removeProperty('transform');
       }
     }
-
-    this._dragged_over = dragItemId;
   }
 
   findDragNDropElement(target) {
@@ -220,9 +253,9 @@ class DragNDrop {
       const el2 = document.querySelector(`#${this.item_prefix}${this._dragged_over}`);
       // add drop item to dom hierarchy
       if (el1 && el2) {
-        if (position == 'left') {
+        if (position == 'left' || position == 'top') {
           const insertBefore = this.drag_container.insertBefore(el1, el2);
-        } else if (position == 'right') {
+        } else if (position == 'right' || position == 'bottom') {
           const insertAfter = this.insertAfter(el1, el2);
         }
       } else {
@@ -247,7 +280,7 @@ class DragNDrop {
     this.nodes.forEach((element) => {
       element.classList.remove('drag-over');
       element.classList.remove('dragging');
-      element.style.transform = null;
+      element.style.transform = '';
       element.style.opacity = 1;
     });
 

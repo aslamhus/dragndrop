@@ -1,6 +1,6 @@
 {
   "name": "dragndrop",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "a simple javascript drag and drop class",
   "main": "DragNDrop.js",
   "scripts": {

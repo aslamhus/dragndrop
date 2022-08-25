@@ -203,7 +203,7 @@ class DragNDrop {
       );
       // remove drag-over class and transform
       if (dragLeaveEl) {
-        console.log('remove drag-over', dragLeaveEl);
+        // console.log('remove drag-over', dragLeaveEl);
         dragLeaveEl.classList.remove('drag-over');
         dragLeaveEl.style.removeProperty('transform');
       }

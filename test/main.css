@@ -1,0 +1,41 @@
+body {
+  padding: 1.5rem;
+}
+#item_list {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border: 1px solid lightgray;
+  padding: 1em;
+  width: 100%;
+  height: auto;
+  position: relative;
+  /* resize: both; */
+}
+.item {
+  position: relative;
+  display: inline-block;
+  margin: 1em;
+  width: 200px;
+  height: 150px;
+  border: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+.item > button {
+  background: white;
+  border: black;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  font-size: small;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.drag-over {
+  /* opacity: 0.5 !important; */
+
+  border: 3px solid blue;
+}
+#add-item-btn {
+  margin: 2rem 0;
+}

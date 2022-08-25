@@ -62,4 +62,4 @@ And you're ready to go!
 
 ## Examples
 
-Checkout DragNDrp in action [test/index.html](here).
+Checkout DragNDrp in action [https://aslamhus.github.io/dragndrop/test/](here).
